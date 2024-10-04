@@ -144,15 +144,15 @@ local Page3 = X.New({
 })
 
 local MyButton4 = Page3.Button({  -- Исправлено название переменной для кнопки
-    Text = "Teleport to storage",
+    Text = "Teleport to storage",  -- Обновлено название кнопки
     Callback = function(value)
         local Players = game:GetService("Players")
         local player = Players.LocalPlayer
 
-        -- Функция телепортации к NPC
+        -- Функция телепортации к NPC Pop Cat
         local function teleportToNPC()
-            -- Находим NPC по заданному пути
-            local npc = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("NPCs") and workspace.Map.NPCs:FindFirstChild("admpn")
+            -- Находим NPC Pop Cat по заданному пути
+            local npc = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("NPCs") and workspace.Map.NPCs:FindFirstChild("Pop_Cat")
             
             -- Проверяем, существует ли NPC и имеет ли он HumanoidRootPart
             if npc and npc:FindFirstChild("HumanoidRootPart") then
@@ -160,14 +160,14 @@ local MyButton4 = Page3.Button({  -- Исправлено название пе�
                 
                 -- Проверяем, существует ли HumanoidRootPart персонажа
                 if character and character:FindFirstChild("HumanoidRootPart") then
-                    -- Телепортируем персонажа к HumanoidRootPart NPC
+                    -- Телепортируем персонажа к HumanoidRootPart NPC Pop Cat
                     character.HumanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame
-                    print("Персонаж телепортирован к NPC admpn")
+                    print("Персонаж телепортирован к NPC Pop Cat")
                 else
                     print("Не удалось найти HumanoidRootPart у персонажа.")
                 end
             else
-                print("NPC admpn не найден или не имеет HumanoidRootPart.")
+                print("NPC Pop Cat не найден или не имеет HumanoidRootPart.")
             end
         end
 
@@ -175,3 +175,38 @@ local MyButton4 = Page3.Button({  -- Исправлено название пе�
         teleportToNPC()
     end
 })
+
+local MyButton5 = Page3.Button({
+    Text = "Teleport to Merchant AU",  -- Название кнопки
+    Callback = function(value)
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
+
+        -- Функция телепортации к NPC Merchant AU
+        local function teleportToNPC()
+            -- Находим NPC Merchant AU по заданному пути
+            local npc = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("NPCs") and workspace.Map.NPCs:FindFirstChild("MerchantAU")
+            
+            -- Проверяем, существует ли NPC и имеет ли он HumanoidRootPart
+            if npc and npc:FindFirstChild("HumanoidRootPart") then
+                local character = player.Character or player.CharacterAdded:Wait()
+                
+                -- Проверяем, существует ли HumanoidRootPart персонажа
+                if character and character:FindFirstChild("HumanoidRootPart") then
+                    -- Телепортируем персонажа к HumanoidRootPart NPC Merchant AU
+                    character.HumanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame
+                    print("Персонаж телепортирован к NPC Merchant AU")
+                else
+                    print("Не удалось найти HumanoidRootPart у персонажа.")
+                end
+            else
+                print("NPC Merchant AU не найден или не имеет HumanoidRootPart.")
+            end
+        end
+
+        -- Вызов функции телепортации
+        teleportToNPC()
+    end
+})
+
+
