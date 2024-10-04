@@ -143,24 +143,19 @@ local Page3 = X.New({
     Title = "Teleport"
 })
 
-local MyButton4 = Page3.Button({  -- Исправлено название переменной для кнопки
-    Text = "Teleport to storage",  -- Обновлено название кнопки
+local MyButton4 = Page3.Button({  
+    Text = "Teleport to Storage", 
     Callback = function(value)
         local Players = game:GetService("Players")
         local player = Players.LocalPlayer
 
         -- Функция телепортации к NPC Pop Cat
         local function teleportToNPC()
-            -- Находим NPC Pop Cat по заданному пути
             local npc = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("NPCs") and workspace.Map.NPCs:FindFirstChild("Pop_Cat")
             
-            -- Проверяем, существует ли NPC и имеет ли он HumanoidRootPart
             if npc and npc:FindFirstChild("HumanoidRootPart") then
                 local character = player.Character or player.CharacterAdded:Wait()
-                
-                -- Проверяем, существует ли HumanoidRootPart персонажа
                 if character and character:FindFirstChild("HumanoidRootPart") then
-                    -- Телепортируем персонажа к HumanoidRootPart NPC Pop Cat
                     character.HumanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame
                     print("Персонаж телепортирован к NPC Pop Cat")
                 else
@@ -171,29 +166,22 @@ local MyButton4 = Page3.Button({  -- Исправлено название пе�
             end
         end
 
-        -- Вызов функции телепортации
         teleportToNPC()
     end
 })
 
 local MyButton5 = Page3.Button({
-    Text = "Teleport to Merchant AU",  -- Название кнопки
+    Text = "Teleport to Merchant AU (not work)",  
     Callback = function(value)
         local Players = game:GetService("Players")
         local player = Players.LocalPlayer
 
-        -- Функция телепортации к NPC Merchant AU
         local function teleportToNPC()
-            -- Находим NPC Merchant AU по заданному пути
             local npc = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("NPCs") and workspace.Map.NPCs:FindFirstChild("MerchantAU")
             
-            -- Проверяем, существует ли NPC и имеет ли он HumanoidRootPart
             if npc and npc:FindFirstChild("HumanoidRootPart") then
                 local character = player.Character or player.CharacterAdded:Wait()
-                
-                -- Проверяем, существует ли HumanoidRootPart персонажа
                 if character and character:FindFirstChild("HumanoidRootPart") then
-                    -- Телепортируем персонажа к HumanoidRootPart NPC Merchant AU
                     character.HumanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame
                     print("Персонаж телепортирован к NPC Merchant AU")
                 else
@@ -204,9 +192,34 @@ local MyButton5 = Page3.Button({
             end
         end
 
-        -- Вызов функции телепортации
         teleportToNPC()
     end
 })
 
+-- Шестая кнопка для телепортации на workspace.Map.ChancesBoards.NormalArrowChances
+local MyButton6 = Page3.Button({
+    Text = "Teleport to Arrow chances",  
+    Callback = function(value)
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
 
+        -- Функция телепортации к объекту NormalArrowChances
+        local function teleportToBoard()
+            local object = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("ChancesBoards") and workspace.Map.ChancesBoards:FindFirstChild("NormalArrowChances")
+            
+            if object then
+                local character = player.Character or player.CharacterAdded:Wait()
+                if character and character:FindFirstChild("HumanoidRootPart") then
+                    character.HumanoidRootPart.CFrame = object.CFrame
+                    print("Персонаж телепортирован к NormalArrowChances")
+                else
+                    print("Не удалось найти HumanoidRootPart у персонажа.")
+                end
+            else
+                print("Объект NormalArrowChances не найден.")
+            end
+        end
+
+        teleportToBoard()
+    end
+})
