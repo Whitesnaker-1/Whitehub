@@ -11,215 +11,156 @@ local X = Material.Load({
     }
 })
 
-local Page1 = X.New({
-    Title = "Farm"
-})
+local aimEnabled = false
+local espEnabled = false
+local camera = game.Workspace.CurrentCamera
+local players = game:GetService("Players")
+local localPlayer = players.LocalPlayer
+local espBoxes = {}
 
--- Флаг для контроля автофарма
-local isFarming = false
+-- Функция для поиска ближайшего игрока
+local function getClosestPlayer()
+    local closestPlayer = nil
+    local closestDistance = math.huge
+    local localChar = localPlayer.Character
+    if not localChar or not localChar:FindFirstChild("HumanoidRootPart") then return nil end
 
--- Функция для телепортации к объекту
-local function teleportToObject(object)
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
-    
-    if character and character:FindFirstChild("HumanoidRootPart") then
-        character.HumanoidRootPart.CFrame = object.CFrame
-        print("Персонаж телепортирован к " .. object.Name)
-    else
-        print("Не удалось найти HumanoidRootPart или персонаж.")
-    end
-end
+    local localPos = localChar.HumanoidRootPart.Position
 
--- Функция для симуляции нажатия клавиши E
-local function pressE(objectName)
-    if not isFarming then return end  -- Проверка перед выполнением действия
-    local item = workspace:FindFirstChild("Vfx") and workspace.Vfx:FindFirstChild(objectName)
-
-    if item and item:IsA("Model") then
-        local handle = item:FindFirstChild("Handle")
-        if handle then
-            teleportToObject(handle)
-        else
-            print("Объект Handle не найден в " .. objectName)
+    for _, player in pairs(players:GetPlayers()) do
+        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local playerPos = player.Character.HumanoidRootPart.Position
+            local distance = (localPos - playerPos).Magnitude
+            if distance < closestDistance then
+                closestDistance = distance
+                closestPlayer = player
+            end
         end
+    end
+
+    return closestPlayer
+end
+
+-- Функция для наведения камеры на ближайшего игрока
+local function aimAtClosestPlayer()
+    local closestPlayer = getClosestPlayer()
+    if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("Head") then
+        local head = closestPlayer.Character.Head
+        camera.CameraType = Enum.CameraType.Scriptable
+        camera.CFrame = CFrame.new(camera.CFrame.Position, head.Position)
+        print("Камера наведена на: " .. closestPlayer.Name)
     else
-        print("Объект " .. objectName .. " не найден в Vfx")
+        print("Игрок не найден")
     end
 end
 
--- Функция для автоматического выполнения действия
-local function autoPressE(objectName)
-    isFarming = true -- Включаем автофарм
-    while isFarming do
-        wait(2) -- Увеличение интервала перед выполнением действия
-        pressE(objectName)
+-- Функция для переключения AIM
+local function toggleAIM()
+    aimEnabled = not aimEnabled
+    if aimEnabled then
+        print("AIM включен")
+        local connection
+        connection = game:GetService("RunService").RenderStepped:Connect(function()
+            if aimEnabled then
+                aimAtClosestPlayer()
+            else
+                connection:Disconnect() -- Отключаем соединение, когда AIM выключен
+            end
+        end)
+    else
+        print("AIM выключен")
+        camera.CameraType = Enum.CameraType.Custom -- Возвращаем камеру к стандартному режиму
     end
-    print("Автофарм остановлен.")
 end
 
--- Создание кнопки для автофарма стрел
-local MyButton = Page1.Button({
-    Text = "AutoFarm arrows",
-    Callback = function(value)
-        spawn(function() autoPressE("Stand Arrow") end) -- Запуск автофарма стрел
-        game:GetService("UserInputService").InputBegan:Connect(function(input)
-            if input.KeyCode == Enum.KeyCode.Insert then
-                isFarming = false -- Останавливаем фарм
-            end
-        end)
-    end
-})
+-- Функция для создания ESP
+local function createESP(player)
+    local espBox = Instance.new("BoxHandleAdornment")
+    espBox.Adornee = player.Character.HumanoidRootPart
+    espBox.ZIndex = 0
+    espBox.Size = Vector3.new(4, 5, 1) -- Размер коробки ESP
+    espBox.Transparency = 0.65
+    espBox.Color3 = Color3.fromRGB(255, 48, 48) -- Цвет ESP
+    espBox.AlwaysOnTop = true
+    espBox.Name = "EspBox"
+    espBox.Parent = player.Character.HumanoidRootPart
+    espBoxes[player] = espBox
+end
 
--- Создание второй кнопки для автофарма (с объектом "Rokakaka")
-local MyButton2 = Page1.Button({
-    Text = "AutoFarm Rokakaka",
-    Callback = function(value)
-        spawn(function() autoPressE("Rokakaka") end) -- Запуск автофарма Рокакаки
-        game:GetService("UserInputService").InputBegan:Connect(function(input)
-            if input.KeyCode == Enum.KeyCode.Insert then
-                isFarming = false -- Останавливаем фарм
+-- Функция для обновления ESP
+local function updateESP()
+    for _, player in pairs(players:GetPlayers()) do
+        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            if not espBoxes[player] then
+                createESP(player)
             end
-        end)
+        elseif espBoxes[player] then
+            espBoxes[player]:Destroy()
+            espBoxes[player] = nil
+        end
     end
-})
+end
 
+-- Функция для переключения ESP
+local function toggleESP()
+    espEnabled = not espEnabled
+    if espEnabled then
+        print("ESP включен")
+        game:GetService("RunService").RenderStepped:Connect(function()
+            updateESP()
+        end)
+    else
+        print("ESP выключен")
+        for _, box in pairs(espBoxes) do
+            if box then
+                box:Destroy()
+            end
+        end
+        espBoxes = {}
+    end
+end
+
+-- Страница для AIM
 local Page2 = X.New({
+    Title = "Aim"
+})
+
+-- Кнопка для включения/выключения AIM
+local MyButton2 = Page2.Button({
+    Text = "Toggle AIM",
+    Callback = function()
+        toggleAIM()
+    end
+})
+
+-- Страница для ESP
+local Page3 = X.New({
     Title = "ESP"
 })
 
--- Флаг для контроля ESP
-local isESPEnabled = false
-local espBoxes = {}  -- Таблица для хранения объектов ESP
-
-local MyButton3 = Page2.Button({
-    Text = "ESP players",
-    Callback = function(value)
-        isESPEnabled = not isESPEnabled
-        if isESPEnabled then
-            for _, childrik in ipairs(workspace:GetDescendants()) do
-                if childrik:FindFirstChild("Humanoid") and childrik ~= game.Players.LocalPlayer.Character then
-                    if not childrik:FindFirstChild("EspBox") then
-                        local esp = Instance.new("BoxHandleAdornment")
-                        esp.Adornee = childrik
-                        esp.ZIndex = 0
-                        esp.Size = Vector3.new(4, 5, 1)
-                        esp.Transparency = 0.65
-                        esp.Color3 = Color3.fromRGB(255, 48, 48)
-                        esp.AlwaysOnTop = true
-                        esp.Name = "EspBox"
-                        esp.Parent = childrik
-                        espBoxes[childrik] = esp  -- Сохраняем ссылку на объект ESP
-                    end
-                end
-            end
-        else
-            -- Удаляем все ESP объекты
-            for _, box in pairs(espBoxes) do
-                if box then
-                    box:Destroy()
-                end
-            end
-            espBoxes = {}  -- Очищаем таблицу
-        end
+-- Кнопка для включения/выключения ESP
+local MyButton3 = Page3.Button({
+    Text = "Toggle ESP",
+    Callback = function()
+        toggleESP()
     end
 })
 
--- Оптимизация: периодическое обновление ESP объектов
-game:GetService("RunService").RenderStepped:Connect(function()
-    if isESPEnabled then
-        for player, esp in pairs(espBoxes) do
-            if player:FindFirstChild("Humanoid") then
-                esp.Adornee = player
-            else
-                esp:Destroy()
-                espBoxes[player] = nil  -- Удаляем ESP из таблицы, если игрока нет
-            end
+-- Обработка нажатия клавиш
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessedEvent)
+    if gameProcessedEvent then return end -- Игнорировать, если событие обрабатывается игрой
+
+    if input.KeyCode == Enum.KeyCode.LeftAlt or input.KeyCode == Enum.KeyCode.RightAlt then
+        if aimEnabled then
+            toggleAIM() -- Выключаем AIM
+            print("AIM выключен с клавиши Alt")
         end
+    elseif input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
+        if not aimEnabled then
+            toggleAIM() -- Включаем AIM
+            print("AIM включен с клавиши Ctrl")
+        end
+    elseif input.KeyCode == Enum.KeyCode.E then
+        toggleESP() -- Включаем/выключаем ESP при нажатии на 'E'
     end
 end)
-
-local Page3 = X.New({
-    Title = "Teleport"
-})
-
-local MyButton4 = Page3.Button({  
-    Text = "Teleport to Storage", 
-    Callback = function(value)
-        local Players = game:GetService("Players")
-        local player = Players.LocalPlayer
-
-        -- Функция телепортации к NPC Pop Cat
-        local function teleportToNPC()
-            local npc = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("NPCs") and workspace.Map.NPCs:FindFirstChild("Pop_Cat")
-            
-            if npc and npc:FindFirstChild("HumanoidRootPart") then
-                local character = player.Character or player.CharacterAdded:Wait()
-                if character and character:FindFirstChild("HumanoidRootPart") then
-                    character.HumanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame
-                    print("Персонаж телепортирован к NPC Pop Cat")
-                else
-                    print("Не удалось найти HumanoidRootPart у персонажа.")
-                end
-            else
-                print("NPC Pop Cat не найден или не имеет HumanoidRootPart.")
-            end
-        end
-
-        teleportToNPC()
-    end
-})
-
-local MyButton5 = Page3.Button({
-    Text = "Teleport to Merchant AU (not work)",  
-    Callback = function(value)
-        local Players = game:GetService("Players")
-        local player = Players.LocalPlayer
-
-        local function teleportToNPC()
-            local npc = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("NPCs") and workspace.Map.NPCs:FindFirstChild("MerchantAU")
-            
-            if npc and npc:FindFirstChild("HumanoidRootPart") then
-                local character = player.Character or player.CharacterAdded:Wait()
-                if character and character:FindFirstChild("HumanoidRootPart") then
-                    character.HumanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame
-                    print("Персонаж телепортирован к NPC Merchant AU")
-                else
-                    print("Не удалось найти HumanoidRootPart у персонажа.")
-                end
-            else
-                print("NPC Merchant AU не найден или не имеет HumanoidRootPart.")
-            end
-        end
-
-        teleportToNPC()
-    end
-})
-
--- Шестая кнопка для телепортации на workspace.Map.ChancesBoards.NormalArrowChances
-local MyButton6 = Page3.Button({
-    Text = "Teleport to Arrow chances",  
-    Callback = function(value)
-        local Players = game:GetService("Players")
-        local player = Players.LocalPlayer
-
-        -- Функция телепортации к объекту NormalArrowChances
-        local function teleportToBoard()
-            local object = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("ChancesBoards") and workspace.Map.ChancesBoards:FindFirstChild("NormalArrowChances")
-            
-            if object then
-                local character = player.Character or player.CharacterAdded:Wait()
-                if character and character:FindFirstChild("HumanoidRootPart") then
-                    character.HumanoidRootPart.CFrame = object.CFrame
-                    print("Персонаж телепортирован к NormalArrowChances")
-                else
-                    print("Не удалось найти HumanoidRootPart у персонажа.")
-                end
-            else
-                print("Объект NormalArrowChances не найден.")
-            end
-        end
-
-        teleportToBoard()
-    end
-})
