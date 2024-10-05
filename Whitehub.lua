@@ -18,6 +18,12 @@ local players = game:GetService("Players")
 local localPlayer = players.LocalPlayer
 local espBoxes = {}
 
+-- Имена игроков, которых нужно исключить
+local excludedPlayerNames = {
+    ["ghoulsssrrank7"] = true,
+    ["mksdns"] = true
+}
+
 -- Функция для поиска ближайшего игрока
 local function getClosestPlayer()
     local closestPlayer = nil
@@ -29,11 +35,13 @@ local function getClosestPlayer()
 
     for _, player in pairs(players:GetPlayers()) do
         if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local playerPos = player.Character.HumanoidRootPart.Position
-            local distance = (localPos - playerPos).Magnitude
-            if distance < closestDistance then
-                closestDistance = distance
-                closestPlayer = player
+            if not excludedPlayerNames[player.Name] then -- Проверка на исключение
+                local playerPos = player.Character.HumanoidRootPart.Position
+                local distance = (localPos - playerPos).Magnitude
+                if distance < closestDistance then
+                    closestDistance = distance
+                    closestPlayer = player
+                end
             end
         end
     end
@@ -50,7 +58,7 @@ local function aimAtClosestPlayer()
         camera.CFrame = CFrame.new(camera.CFrame.Position, head.Position)
         print("Камера наведена на: " .. closestPlayer.Name)
     else
-        print("Игрок не найден")
+        print("Игрок не найден или он в списке исключений")
     end
 end
 
@@ -91,12 +99,14 @@ end
 local function updateESP()
     for _, player in pairs(players:GetPlayers()) do
         if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            if not espBoxes[player] then
-                createESP(player)
+            if not excludedPlayerNames[player.Name] then -- Проверка на исключение
+                if not espBoxes[player] then
+                    createESP(player)
+                end
+            elseif espBoxes[player] then
+                espBoxes[player]:Destroy()
+                espBoxes[player] = nil
             end
-        elseif espBoxes[player] then
-            espBoxes[player]:Destroy()
-            espBoxes[player] = nil
         end
     end
 end
