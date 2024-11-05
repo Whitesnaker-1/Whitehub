@@ -1,2 +1,275 @@
-local M=loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/MaterialLua/master/Module.lua"))()local X=M.Load({Title="BlackWave.cc | by whitesnaker | For War Tycoon",Style=3,SizeX=500,SizeY=350,Theme="Dark",ColorOverrides={MainFrame=Color3.fromRGB(235,235,235)}})local E=loadstring(game:HttpGet("https://raw.githubusercontent.com/linemaster2/esp-library/main/library.lua"))();E.Enabled=true;E.ShowBox=true;E.BoxType="Corner Box Esp";E.ShowName=true;E.ShowHealth=true;E.ShowTracer=true;E.ShowDistance=true;local a=false;local b=false;local c=game:GetService("Workspace").CurrentCamera;local d;local e;local f={"ilovewartycoonbyrust","ponosik32121","adol1grizrel12345","giontdk2"}local g=function(h)local i=h.Character;if i and i:FindFirstChild("Head")then local j=i.Head local k=c.CFrame local l=CFrame.new(c.CFrame.Position,j.Position)local m=0.3 c.CFrame=k:Lerp(l,m)end end local n=function(h)local i=h.Character;if i and i:FindFirstChild("Head")then local j=i.Head c.CFrame=CFrame.new(c.CFrame.Position,j.Position)end end local o=function()b=not b;if b then print("Плавный AIM включен")d=game:GetService("RunService").RenderStepped:Connect(function()if b then local q=nil;local r=math.huge;local s=game.Players:GetPlayers()for _,t in ipairs(s)do if t~=game.Players.LocalPlayer and t.Character and t.Character:FindFirstChild("Head")then if not f[t.Name]then local u=(t.Character.Head.Position-c.CFrame.Position).magnitude;if u<r then r=u;q=t end end end end if q then g(q)end end end)else print("Плавный AIM выключен")if d then d:Disconnect()end end end local v=function()a=not a;if a then print("Быстрый AIM включен")d=game:GetService("RunService").RenderStepped:Connect(function()if a then local q=nil;local r=math.huge;local s=game.Players:GetPlayers()for _,t in ipairs(s)do if t~=game.Players.LocalPlayer and t.Character and t.Character:FindFirstChild("Head")then if not f[t.Name]then local u=(t.Character.Head.Position-c.CFrame.Position).magnitude;if u<r then r=u;q=t end end end end if q then n(q)end end end)else print("Быстрый AIM выключен")if d then d:Disconnect()end end end local w=function()if e then e:Destroy()end local x=Instance.new("ScreenGui")x.ResetOnSpawn=false;e=Instance.new("TextLabel")x.Parent=game.Players.LocalPlayer:WaitForChild("PlayerGui")e.Parent=x;e.Position=UDim2.new(0,10,0,10)e.Size=UDim2.new(0,300,0,200)e.TextColor3=Color3.fromRGB(128,0,128)e.BackgroundTransparency=1;e.Font=Enum.Font.SourceSans;e.TextSize=24 end local y=function()local z={}if b then table.insert(z,"Плавный AIM (Alt)")end if a then table.insert(z,"Быстрый AIM (Ctrl)")end if E.Enabled then table.insert(z,"ESP (E)")end e.Text=table.concat(z,"\n")end w()y()local A=X.New({Title="AIM"})local B=A.Button({Text="Toggle Smooth AIM",Callback=function()o()y()end})local C=A.Button({Text="Toggle Quick AIM",Callback=function()v()y()end})local D=X.New({Title="ESP"})local EButton=D.Button({Text="Toggle ESP",Callback=function()E.Enabled=not E.Enabled;y()end})game:GetService("UserInputService").InputBegan:Connect(function(H,I)if H.KeyCode==Enum.KeyCode.LeftAlt and not I then o()y()elseif H.KeyCode==Enum.KeyCode.LeftControl and not I then v()y()end end)local J={"Sierra","Echo","Delta","Omega","Foxtrot","Alpha","Bravo","Charlie","Golf","Hotel","Kilo","Lima","Victor","Zulu","Tango","Romeo","Центр"}local K=function(L)local M=game.Players.LocalPlayer;local N=M.Character or M.CharacterAdded:Wait()local O=workspace.Tycoon.TycoonFloor:FindFirstChild(L)if O then N:SetPrimaryPartCFrame(O.CFrame+Vector3.new(0,5,0))print("Телепортировано к базе "..L)else print("База "..L.." не найдена!")end end local P=X.New({Title="Teleport to Bases"})for _,L in ipairs(J)do P.Button({Text="Teleport to "..L,Callback=function()K(L)end})end print("Скрипт загружен успешно!")
+local Material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/MaterialLua/master/Module.lua"))()
+
+local X = Material.Load({
+    Title = "White Hub | by whitesnaker | For War Tycoon",
+    Style = 3,
+    SizeX = 500,
+    SizeY = 350,
+    Theme = "Dark",
+    ColorOverrides = {
+        MainFrame = Color3.fromRGB(235, 235, 235)
+    }
+})
+
+local ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/linemaster2/esp-library/main/library.lua"))()
+ESP.Enabled = true
+ESP.ShowBox = true
+ESP.BoxType = "Corner Box Esp"
+ESP.ShowName = true
+ESP.ShowHealth = true
+ESP.ShowTracer = true
+ESP.ShowDistance = true
+
+local aimEnabled = false
+local smoothAimEnabled = false
+local camera = game:GetService("Workspace").CurrentCamera
+local aimConnection 
+local textLabel 
+
+-- Список исключений
+local excludedPlayers = {
+    ["ghoulsssrrank7"] = true,
+    ["mksdns"] = true,
+    ["sasiska09876543211"] = true,
+    ["adol1grizrel12345"] = true,
+    ["ilovewartycoonbyrust"] = true,
+    ["ponosik32121"] = true,
+    ["giontdk2"] = true,
+    
+}
+
+local function smoothAim(player)
+    local character = player.Character
+    if character and character:FindFirstChild("Head") then
+        local head = character.Head
+        local currentCFrame = camera.CFrame
+        local targetCFrame = CFrame.new(camera.CFrame.Position, head.Position)
+        local lerpSpeed = 0.3
+        camera.CFrame = currentCFrame:Lerp(targetCFrame, lerpSpeed)
+    end
+end
+
+local function quickAim(player)
+    local character = player.Character
+    if character and character:FindFirstChild("Head") then
+        local head = character.Head
+        camera.CFrame = CFrame.new(camera.CFrame.Position, head.Position)
+    end
+end
+
+local function toggleSmoothAIM()
+    smoothAimEnabled = not smoothAimEnabled
+    if smoothAimEnabled then
+        print("Плавный AIM включен")
+        aimConnection = game:GetService("RunService").RenderStepped:Connect(function()
+            if smoothAimEnabled then
+                local closestPlayer = nil
+                local closestDistance = math.huge
+                local players = game.Players:GetPlayers()
+
+                for _, player in ipairs(players) do
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                        if not excludedPlayers[player.Name] then
+                            local distance = (player.Character.Head.Position - camera.CFrame.Position).magnitude
+                            if distance < closestDistance then
+                                closestDistance = distance
+                                closestPlayer = player
+                            end
+                        end
+                    end
+                end
+
+                if closestPlayer then
+                    smoothAim(closestPlayer)
+                end
+            end
+        end)
+    else
+        print("Плавный AIM выключен")
+        if aimConnection then
+            aimConnection:Disconnect()
+        end
+    end
+end
+
+local function toggleQuickAIM()
+    aimEnabled = not aimEnabled
+    if aimEnabled then
+        print("Быстрый AIM включен")
+        aimConnection = game:GetService("RunService").RenderStepped:Connect(function()
+            if aimEnabled then
+                local closestPlayer = nil
+                local closestDistance = math.huge
+                local players = game.Players:GetPlayers()
+
+                for _, player in ipairs(players) do
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                        if not excludedPlayers[player.Name] then
+                            local distance = (player.Character.Head.Position - camera.CFrame.Position).magnitude
+                            if distance < closestDistance then
+                                closestDistance = distance
+                                closestPlayer = player
+                            end
+                        end
+                    end
+                end
+
+                if closestPlayer then
+                    quickAim(closestPlayer)
+                end
+            end
+        end)
+    else
+        print("Быстрый AIM выключен")
+        if aimConnection then
+            aimConnection:Disconnect()
+        end
+    end
+end
+
+local function createTextLabel()
+    if textLabel then
+        textLabel:Destroy()
+    end
+
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.ResetOnSpawn = false
+    textLabel = Instance.new("TextLabel")
+
+    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    textLabel.Parent = screenGui
+
+    textLabel.Position = UDim2.new(0, 10, 0, 10)
+    textLabel.Size = UDim2.new(0, 300, 0, 200)
+    textLabel.TextColor3 = Color3.fromRGB(128, 0, 128)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Font = Enum.Font.SourceSans
+    textLabel.TextSize = 24
+end
+
+local function updateFunctionList()
+    local enabledFunctions = {}
+
+    if smoothAimEnabled then
+        table.insert(enabledFunctions, "Плавный AIM (Alt)")
+    end
+
+    if aimEnabled then
+        table.insert(enabledFunctions, "Быстрый AIM (Ctrl)")
+    end
+
+    if ESP.Enabled then
+        table.insert(enabledFunctions, "ESP (E)")
+    end
+
+    textLabel.Text = table.concat(enabledFunctions, "\n") 
+end
+
+createTextLabel()
+updateFunctionList()
+
+local pageAIM = X.New({
+    Title = "AIM"
+})
+
+local MySmoothAimButton = pageAIM.Button({
+    Text = "Toggle Smooth AIM",
+    Callback = function(value)
+        toggleSmoothAIM()
+        updateFunctionList()
+    end
+})
+
+local MyQuickAimButton = pageAIM.Button({
+    Text = "Toggle Quick AIM",
+    Callback = function(value)
+        toggleQuickAIM()
+        updateFunctionList()
+    end
+})
+
+local pageESP = X.New({
+    Title = "ESP"
+})
+
+local MyESPButton = pageESP.Button({
+    Text = "Toggle ESP",
+    Callback = function(value)
+        ESP.Enabled = not ESP.Enabled
+        updateFunctionList()
+    end
+})
+
+-- Функция телепортации на центральную точку
+local function teleportToCenter()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if rootPart then
+        local centerPosition = Vector3.new(0, 50, 0) -- Задай Y координату на высоту, чтобы избежать попадания под карту
+        rootPart.CFrame = CFrame.new(centerPosition) -- Телепортируем на центр
+        print("Телепортировано в центр карты и поднято на 50 единиц")
+    else
+        print("Ошибка: У персонажа нет HumanoidRootPart!")
+    end
+end
+
+-- Добавление кнопки телепортации на центральную точку
+local pageTeleport = X.New({
+    Title = "Teleport"
+})
+
+local teleportCenterButton = pageTeleport.Button({
+    Text = "Teleport to Center",
+    Callback = function(value)
+        teleportToCenter()
+    end
+})
+
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.LeftAlt and not gameProcessed then
+        toggleSmoothAIM()
+        updateFunctionList()
+    elseif input.KeyCode == Enum.KeyCode.LeftControl and not gameProcessed then
+        toggleQuickAIM()
+        updateFunctionList()
+    end
+end)
+
+local teleportButtons = {
+    "Sierra", "Echo", "Delta", "Omega", "Foxtrot",
+    "Alpha", "Bravo", "Charlie", "Golf", "Hotel",
+    "Kilo", "Lima", "Victor", "Zulu", "Tango", "Romeo"
+}
+
+local function teleportToBase(baseName)
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local target = workspace.Tycoon.TycoonFloor:FindFirstChild(baseName)
+
+    if target then
+        character:SetPrimaryPartCFrame(target.CFrame + Vector3.new(0, 5, 0))
+        print("Телепортировано к базе " .. baseName)
+    else
+        print("База " .. baseName .. " не найдена!")
+    end
+end
+
+local PageTeleport = X.New({
+    Title = "Teleport to Bases"
+})
+
+for _, baseName in ipairs(teleportButtons) do
+    PageTeleport.Button({
+        Text = "Teleport to " .. baseName,
+        Callback = function(value)
+            teleportToBase(baseName)
+        end
+    })
+end
+
+print("Скрипт загружен успешно!")       
+message.txt
+9 кб
+
 
